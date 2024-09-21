@@ -1,5 +1,11 @@
-import 'package:diary/components/homepageTasksCard.dart';
+import 'package:diary/bloc/to_do_list_bloc.dart';
+import 'package:diary/to_do_list_page.dart';
+import 'package:diary/widgets/clock_widget.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const MyApp());
@@ -11,16 +17,23 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0x00005073),
-            surface: const Color(0x0000415e)),
-        useMaterial3: true,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => ToDoListBloc(),
+        )
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Diary',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0x00005073),
+              surface: const Color(0x0000415e)),
+          useMaterial3: true,
+        ),
+        home: MyHomePage(title: 'Diary', time: DateTime.now()),
       ),
-      home: MyHomePage(title: 'Diary', time: DateTime.now()),
     );
   }
 }
@@ -49,29 +62,70 @@ class _MyHomePageState extends State<MyHomePage> {
             widget.title,
             style: const TextStyle(color: Colors.white),
           ),
-          Text(
-            '${widget.time.hour}-${widget.time.minute}-${widget.time.second}',
-            style: const TextStyle(color: Colors.white),
-          )
+          const ClockWidget(optionTime: TimeOption.time)
         ]),
       ),
-      body: Column(
-        children: [
-          const Center(
-            child: FittedBox(
-              fit: BoxFit.fill,
-              child: Text(
-                'Control your life!',
-                style: TextStyle(fontSize: 40, color: Colors.white),
+      body: Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Center(
+                  child: FittedBox(
+                    fit: BoxFit.fill,
+                    child: Text(
+                      'Control your life!',
+                      style: TextStyle(fontSize: 40, color: Colors.white),
+                    ),
+                  ),
+                ),
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () {},
+                    child: Container(
+                        padding: const EdgeInsets.only(right: 20.0),
+                        child: const Icon(Icons.refresh_rounded)),
+                  ),
+                )
+              ],
+            ),
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                  color: Colors.black45,
+                  borderRadius: BorderRadius.all(Radius.circular(20))),
+              height: 500,
+              child: const Center(
+                child: Text('GRAPH HERE'),
               ),
             ),
-          ),
-          Container(
-            width: double.infinity,
-            child: Card(child: Text('GRAPH HERE')),
-          ),
-          const HomePageCard()
-        ],
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => ToDoListPage(
+                          title: widget.title,
+                          time: widget.time,
+                        ))),
+                child: const Card(
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 100,
+                    child: Center(
+                      child: Text(
+                        "Check your To-DO's",
+                        style: TextStyle(fontSize: 32),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
