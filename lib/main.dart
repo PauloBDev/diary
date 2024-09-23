@@ -1,12 +1,7 @@
 import 'package:diary/bloc/to_do_list_bloc.dart';
 import 'package:diary/pages/home.dart';
-import 'package:diary/pages/toDoList.dart';
-import 'package:diary/widgets/clock_widget.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const MyApp());

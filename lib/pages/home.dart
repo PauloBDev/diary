@@ -1,5 +1,4 @@
 import 'package:diary/pages/toDoList.dart';
-import 'package:diary/widgets/clock_widget.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -22,15 +21,15 @@ class _HomePageState extends State<HomePage> {
         elevation: 0.0,
         title: Text(
           widget.title,
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         ),
         centerTitle: true,
         actions: [
           GestureDetector(
             onTap: () {},
             child: Container(
-                margin: EdgeInsets.only(right: 20),
-                child: Icon(Icons.settings)),
+                margin: const EdgeInsets.only(right: 20),
+                child: const Icon(Icons.settings)),
           )
         ],
       ),
