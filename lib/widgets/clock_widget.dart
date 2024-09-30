@@ -16,10 +16,10 @@ class ClockWidget extends StatelessWidget {
           DateFormat(optionTime == TimeOption.date
                   ? 'MM/dd/yyyy'
                   : optionTime == TimeOption.time
-                      ? 'hh:mm:ss'
-                      : 'MM/dd/yyyy hh:mm:ss')
+                      ? 'hh:mm'
+                      : 'MM/dd/yyyy hh:mm')
               .format(DateTime.now()),
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         );
       },
     );
