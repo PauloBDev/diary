@@ -12,11 +12,12 @@ class TodoLoading extends TodoEvent {}
 
 class AddTodo extends TodoEvent {
   final Todo todo;
+  final List<Todo> todos;
 
-  const AddTodo(this.todo);
+  const AddTodo(this.todo, this.todos);
 
   @override
-  List<Object?> get props => [todo];
+  List<Object?> get props => [todo, todos];
 }
 
 class RemoveTodo extends TodoEvent {
@@ -31,9 +32,10 @@ class RemoveTodo extends TodoEvent {
 
 class EditTodo extends TodoEvent {
   final int index;
+  final List<Todo> todos;
 
-  const EditTodo(this.index);
+  const EditTodo(this.index, this.todos);
 
   @override
-  List<Object?> get props => [index];
+  List<Object?> get props => [index, todos];
 }

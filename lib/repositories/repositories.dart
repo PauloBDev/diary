@@ -5,6 +5,7 @@ import 'package:http/http.dart';
 
 class TodoRepository {
   String endpoint = 'https://dummyjson.com/todos';
+
   Future<List<Todo>> getToDos() async {
     Response response = await get(Uri.parse(endpoint));
     if (response.statusCode == 200) {
@@ -18,6 +19,16 @@ class TodoRepository {
 
   List<Todo> removeTodo(int id, List<Todo> todos) {
     todos.removeWhere((element) => element.id == id);
+    return todos;
+  }
+
+  List<Todo> addTodo(Todo todo, List<Todo> todos) {
+    todos.add(todo);
+    return todos;
+  }
+
+  List<Todo> editTodo(int index, List<Todo> todos) {
+    todos[index].completed = !todos[index].completed;
     return todos;
   }
 }
