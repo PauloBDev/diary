@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "267673273007",
+    "firebase_url": "https://diary-ce9ec-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "diary-ce9ec",
+    "storage_bucket": "diary-ce9ec.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:267673273007:android:50fefdd0db76a3712dca5a",
+        "android_client_info": {
+          "package_name": "com.example.diary"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "267673273007-b1fh9ks49tv7mda1kqacs4vifnnqopol.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyOZk7crSYOwsdwrOqMgJbvbv_lDEJOPI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "267673273007-b1fh9ks49tv7mda1kqacs4vifnnqopol.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "267673273007-f281ed47jlcli1r7o4dl4rm6kqt9tetu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.diary"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

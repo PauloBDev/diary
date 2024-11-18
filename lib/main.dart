@@ -1,21 +1,17 @@
 import 'package:diary/pages/home.dart';
 import 'package:diary/repositories/repositories.dart';
-// import 'package:diary/todo_bloc/todo_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:hydrated_bloc/hydrated_bloc.dart';
-// import 'package:path_provider/path_provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 
-void main() async {
-  // WidgetsFlutterBinding.ensureInitialized();
-  // HydratedBloc.storage = await HydratedStorage.build(
-  //   storageDirectory: await getTemporaryDirectory(),
-  // );
-  runApp(const MyApp());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final Future<FirebaseApp> _fbApp = Firebase.initializeApp();
 
   // This widget is the root of your application.
   @override
@@ -29,10 +25,24 @@ class MyApp extends StatelessWidget {
               surface: const Color(0x0000415e)),
           useMaterial3: true,
           fontFamily: 'Poppins'),
-      home: RepositoryProvider(
-        create: (context) => TodoRepository(),
-        child: MyHomePage(title: 'Diary', time: DateTime.now()),
-      ),
+      home: FutureBuilder(
+          future: _fbApp,
+          builder: ((context, snapshot) {
+            if (snapshot.hasError) {
+              print('Error! ${snapshot.error.toString()}');
+              return const Text('Error!');
+            } else if (snapshot.hasData) {
+              print('Successful!!');
+              return RepositoryProvider(
+                create: (context) => TaskRepository(),
+                child: MyHomePage(title: 'Diary', time: DateTime.now()),
+              );
+            } else {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          })),
     );
   }
 }
