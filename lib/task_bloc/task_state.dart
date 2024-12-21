@@ -17,7 +17,7 @@ class TaskLoadingState extends TaskState {
 
 class TaskFetchedState extends TaskState {
   TaskFetchedState(this.tasks);
-  final List<Task> tasks;
+  final List<DailyEntry> tasks;
 
   @override
   List<Object?> get props => [tasks];

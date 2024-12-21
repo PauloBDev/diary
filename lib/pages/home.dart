@@ -1,4 +1,5 @@
-import 'package:diary/pages/toDoList.dart';
+import 'package:diary/widgets/daily_struggles.dart';
+import 'package:diary/widgets/daily_task_list.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -14,7 +15,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    print('Rebuilded home.dart');
+    print('Rebuild home.dart');
 
     return Scaffold(
       appBar: AppBar(
@@ -57,7 +58,27 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(
                 height: 16,
               ),
-              ToDoListWidget(),
+              const DailyTaskList(),
+              const SizedBox(
+                height: 16,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FittedBox(
+                    fit: BoxFit.fill,
+                    child: Text(
+                      "How is your day going?",
+                      style: TextStyle(
+                          fontSize: screenWidth * 0.06, color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              const DailyStrugglesList(),
             ],
           ),
         ),

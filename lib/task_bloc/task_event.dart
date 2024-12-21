@@ -11,8 +11,8 @@ abstract class TaskEvent extends Equatable {
 class TaskLoading extends TaskEvent {}
 
 class AddTask extends TaskEvent {
-  final Task task;
-  final List<Task> tasks;
+  final DailyEntry task;
+  final List<DailyEntry> tasks;
 
   const AddTask(this.task, this.tasks);
 
@@ -21,8 +21,8 @@ class AddTask extends TaskEvent {
 }
 
 class RemoveTask extends TaskEvent {
-  final List<Task> tasks;
-  final Task task;
+  final List<DailyEntry> tasks;
+  final DailyEntry task;
 
   const RemoveTask(this.task, this.tasks);
 
@@ -32,7 +32,7 @@ class RemoveTask extends TaskEvent {
 
 class EditTask extends TaskEvent {
   final int index;
-  final List<Task> tasks;
+  final List<DailyEntry> tasks;
 
   const EditTask(this.index, this.tasks);
 
