@@ -1,16 +1,16 @@
-class DailyEntry {
+class DailyTask {
   String? timeStamp;
   String? taskName;
   bool completed = false;
   String? id;
 
-  DailyEntry(
+  DailyTask(
       {required this.timeStamp,
       required this.taskName,
       required this.completed,
       required this.id});
 
-  DailyEntry.fromJson(Map<String, dynamic> json) {
+  DailyTask.fromJson(Map<String, dynamic> json) {
     timeStamp = json['timeStamp'];
     taskName = json['taskName'];
     completed = json['completed'] == "false" ? false : true;

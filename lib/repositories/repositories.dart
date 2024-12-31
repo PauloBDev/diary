@@ -9,7 +9,7 @@ class TaskRepository {
 
   final database = FirebaseDatabase.instance.ref();
 
-  Future<List<DailyEntry>> getTasks() async {
+  Future<List<DailyTask>> getTasks() async {
     final database = FirebaseDatabase.instance.ref();
 
     final results = database.child('dailyTasks').onValue.map((event) {
@@ -17,7 +17,7 @@ class TaskRepository {
           event.snapshot.value as Map<String, dynamic>);
 
       final taskList = taskMap.entries.map((e) {
-        return DailyEntry.fromJson(e.value);
+        return DailyTask.fromJson(e.value);
       }).toList();
 
       return taskList;
@@ -38,18 +38,18 @@ class TaskRepository {
 
       final List result = jsonDecode(response.body)['todos'];
 
-      return result.map((e) => DailyEntry.fromJson(e)).toList();
+      return result.map((e) => DailyTask.fromJson(e)).toList();
     } else {
       throw Exception(response.reasonPhrase);
     }
   }
 
-  List<DailyEntry> removeTask(String? id, List<DailyEntry> tasks) {
+  List<DailyTask> removeTask(String? id, List<DailyTask> tasks) {
     tasks.removeWhere((element) => element.id == id);
     return tasks;
   }
 
-  List<DailyEntry> addTask(DailyEntry task, List<DailyEntry> tasks) {
+  List<DailyTask> addTask(DailyTask task, List<DailyTask> tasks) {
     print('Adding task $task');
     final addTask = database.push();
 
@@ -58,7 +58,7 @@ class TaskRepository {
     return tasks;
   }
 
-  List<DailyEntry> editTask(int index, List<DailyEntry> tasks) {
+  List<DailyTask> editTask(int index, List<DailyTask> tasks) {
     tasks[index].completed = !tasks[index].completed;
     return tasks;
   }

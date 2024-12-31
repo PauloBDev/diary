@@ -1,4 +1,4 @@
-import 'package:diary/widgets/daily_struggles.dart';
+import 'package:diary/widgets/daily_entries.dart';
 import 'package:diary/widgets/daily_task_list.dart';
 import 'package:flutter/material.dart';
 

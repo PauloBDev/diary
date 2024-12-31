@@ -1,31 +1,31 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:diary/models/dailyEntry_model.dart';
 import 'package:diary/models/task_model.dart';
-import 'package:diary/pages/dailyTasksManagement.dart';
+import 'package:diary/pages/dailyStrugglesEntries.dart';
 import 'package:diary/repositories/repositories.dart';
 import 'package:diary/task_bloc/task_bloc.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 // ignore: must_be_immutable
-class DailyTaskList extends StatefulWidget {
-  const DailyTaskList({
+class DailyStrugglesList extends StatefulWidget {
+  const DailyStrugglesList({
     super.key,
   });
 
   @override
-  State<DailyTaskList> createState() => _DailyTaskListState();
+  State<DailyStrugglesList> createState() => _DailyStrugglesListState();
 }
 
-class _DailyTaskListState extends State<DailyTaskList> {
+class _DailyStrugglesListState extends State<DailyStrugglesList> {
   final _database = FirebaseDatabase.instance.ref();
-  late StreamSubscription _dailyTasks;
+  late StreamSubscription _dailyEntries;
 
-  List<DailyTask> taskList = [];
+  List<DailyEntry> taskList = [];
 
   @override
   void initState() {
@@ -35,20 +35,19 @@ class _DailyTaskListState extends State<DailyTaskList> {
 
   @override
   void deactivate() {
-    _dailyTasks.cancel();
+    _dailyEntries.cancel();
     super.deactivate();
   }
 
   void _activateListeners() {
-    _dailyTasks = _database.child('dailyTasks/').onValue.listen((event) {
+    _dailyEntries = _database
+        .child(
+            'dailyEntries/${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}')
+        .onValue
+        .listen((event) {
       final tasks = event.snapshot.value.toString();
 
       if (tasks.isNotEmpty) taskList = getList(tasks);
-
-      for (var task in taskList) {
-        print(
-            '${task.id} - ${task.taskName} - ${task.completed} - ${task.timeStamp}');
-      }
 
       setState(() {});
     });
@@ -57,8 +56,9 @@ class _DailyTaskListState extends State<DailyTaskList> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    final databaseToday = _database.child('dailyTasks/');
-    print('Rebuild taskList.dart');
+    final _databaseToday = _database.child(
+        'dailyEntries/${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}');
+    print('Rebuild entryList.dart');
 
     return BlocProvider(
       create: (context) =>
@@ -74,53 +74,21 @@ class _DailyTaskListState extends State<DailyTaskList> {
               index,
             ) {
               return Card(
-                color: Colors.transparent,
+                color: Colors.grey,
                 margin: const EdgeInsets.all(10),
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.all(Radius.circular(20)),
-                      border: Border.all(color: Colors.white)),
+                child: SizedBox(
+                  height: 70,
                   child: Row(
                     children: [
-                      Checkbox(
-                        hoverColor: Colors.white,
-                        value: taskList[index].completed,
-                        onChanged: (value) {
-                          databaseToday
-                              .child('${taskList[index].id}/')
-                              .update({'completed': value!});
-                        },
-                      ),
-                      Flexible(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            SizedBox(
-                              width: screenWidth * 0.5,
-                              child: Text(
-                                taskList[index].taskName ??
-                                    'Failed to get task name',
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  color: Colors.white,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.only(right: 20),
-                              child: Text(
-                                DateFormat('hh:mm a')
-                                    .format(
-                                        (DateTime.fromMillisecondsSinceEpoch(
-                                            int.parse(
-                                                taskList[index].timeStamp!))))
-                                    .toString(),
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ],
+                      SizedBox(
+                        width: screenWidth * 0.65,
+                        child: Text(
+                          taskList[index].type.name,
+                          style: const TextStyle(
+                            fontSize: 32,
+                            color: Colors.black,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
                     ],
@@ -135,7 +103,7 @@ class _DailyTaskListState extends State<DailyTaskList> {
           GestureDetector(
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
-                  builder: (context) => const DailyTaskManagement()),
+                  builder: (context) => const DailyStrugglesEntries()),
             ),
             child: Container(
               margin: const EdgeInsets.only(left: 20, right: 20),
@@ -148,9 +116,10 @@ class _DailyTaskListState extends State<DailyTaskList> {
                   padding: const EdgeInsets.all(15),
                   decoration: BoxDecoration(
                       border: Border.all(color: Colors.white),
-                      borderRadius: BorderRadius.all(Radius.circular(20))),
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(20))),
                   child: const Text(
-                    "Add a daily task!",
+                    "Add a entry.",
                     style: TextStyle(color: Colors.white),
                   ),
                 )
@@ -171,9 +140,9 @@ class _DailyTaskListState extends State<DailyTaskList> {
     );
   }
 
-  List<DailyTask> getList(String tasks) {
+  List<DailyEntry> getList(String tasks) {
     final List<String> taskStringList = [];
-    final List<DailyTask> taskList = [];
+    final List<DailyEntry> taskList = [];
 
     final jsonString = tasks
         .replaceAll(RegExp(r'\+'), '') // To remove all white spaces
@@ -184,8 +153,6 @@ class _DailyTaskListState extends State<DailyTaskList> {
         .replaceAll(RegExp(r'{'),
             '{"') // To add double-quotes after every open curly bracket
         .replaceAll(RegExp(r'}'), '"}');
-
-    print('Initial String: $jsonString');
 
     final jsonSplitAllDynamicOut = jsonString.split('":" {');
 
@@ -201,13 +168,9 @@ class _DailyTaskListState extends State<DailyTaskList> {
       }
     }
 
-    print('String List: $taskStringList');
-
     for (var task in taskStringList) {
-      print('went in the fromJason: $task');
-      final model = DailyTask.fromJson(
+      final model = DailyEntry.fromJson(
           jsonDecode(task.replaceAll('":" ', '":"').replaceAll('"," ', '","')));
-      print('Model: $model');
       taskList.add(model);
     }
 

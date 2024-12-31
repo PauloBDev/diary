@@ -21,7 +21,7 @@ class _DailyTaskManagementState extends State<DailyTaskManagement> {
 
   late StreamSubscription _dailyTasks;
 
-  List<DailyEntry> taskList = [];
+  List<DailyTask> taskList = [];
 
   @override
   void initState() {
@@ -205,9 +205,9 @@ class _DailyTaskManagementState extends State<DailyTaskManagement> {
     );
   }
 
-  List<DailyEntry> getList(String tasks) {
+  List<DailyTask> getList(String tasks) {
     final List<String> taskStringList = [];
-    final List<DailyEntry> taskList = [];
+    final List<DailyTask> taskList = [];
 
     final jsonString = tasks
         .replaceAll(RegExp(r'\+'), '') // To remove all white spaces
@@ -239,7 +239,7 @@ class _DailyTaskManagementState extends State<DailyTaskManagement> {
 
     for (var task in taskStringList) {
       print('went in the fromJason: $task');
-      final model = DailyEntry.fromJson(
+      final model = DailyTask.fromJson(
           jsonDecode(task.replaceAll('":" ', '":"').replaceAll('"," ', '","')));
       print('Model: $model');
       taskList.add(model);
@@ -255,8 +255,6 @@ class _DailyTaskManagementState extends State<DailyTaskManagement> {
   Future<void> _addTaskDialog(BuildContext context) {
     final taskController = TextEditingController();
     final addTask = _database.child('dailyTasks/');
-    print(
-        '${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}');
 
     return showGeneralDialog(
       barrierLabel: "showGeneralDialog",

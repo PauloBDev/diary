@@ -22,7 +22,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     emit(TaskLoadingState());
     try {
       final tasks = await _taskRepository.getTasks();
-      List<DailyEntry> tasksOnlyFour = [];
+      List<DailyTask> tasksOnlyFour = [];
 
       for (var i = 0; i < 4; i++) {
         tasksOnlyFour.add(tasks[i]);
