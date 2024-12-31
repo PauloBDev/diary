@@ -5,18 +5,22 @@ class DailyEntry {
   String? scale;
   String? timeStamp;
   String? comment;
+  String? id;
 
-  DailyEntry(
-      {required this.type,
-      required this.scale,
-      required this.timeStamp,
-      this.comment});
+  DailyEntry({
+    required this.type,
+    required this.scale,
+    required this.timeStamp,
+    this.comment,
+    required this.id,
+  });
 
   DailyEntry.fromJson(Map<String, dynamic> json) {
     type = json['type'];
     scale = json['scale'];
     timeStamp = json['timeStamp'];
     comment = json['comment'];
+    id = json['id'];
   }
 
   Map<String, dynamic> toJson() {
@@ -25,6 +29,7 @@ class DailyEntry {
     data['scale'] = scale;
     data['timeStamp'] = timeStamp;
     data['comment'] = comment;
+    data['id'] = id;
     return data;
   }
 }

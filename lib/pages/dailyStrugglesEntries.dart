@@ -3,14 +3,15 @@ import 'dart:convert';
 
 import 'package:diary/models/dailyEntry_model.dart';
 import 'package:diary/models/dailyType_model.dart';
-import 'package:diary/models/task_model.dart';
 import 'package:diary/repositories/repositories.dart';
 import 'package:diary/task_bloc/task_bloc.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_iconpicker/Models/configuration.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 
 class DailyStrugglesEntries extends StatefulWidget {
   const DailyStrugglesEntries({super.key});
@@ -30,11 +31,44 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
   bool hasTypes = false;
 
   DailyEntry defaultDailyEntry = DailyEntry(
-      type: Type.stomach, scale: '', timeStamp: DateTime.now().toString());
+      type: Type.stomach,
+      scale: '',
+      timeStamp: DateTime.now().toString(),
+      id: null);
   DailyType defaultDailyType = DailyType(
     name: '',
     icon: '',
+    id: null,
   );
+
+  Icon? _icon;
+
+  _pickIcon() async {
+    debugPrint('Went to pickIcon!!');
+    IconPickerIcon? icon = await showIconPicker(
+      context,
+      configuration: const SinglePickerConfiguration(
+        iconColor: Colors.white,
+        backgroundColor: Colors.black,
+        iconPackModes: [
+          IconPack.cupertino,
+          IconPack.material,
+          IconPack.allMaterial,
+          IconPack.fontAwesomeIcons,
+          IconPack.lineAwesomeIcons
+        ],
+      ),
+    );
+
+    debugPrint('Icon: $icon');
+
+    _icon = Icon(icon!.data);
+    setState(() {
+      _icon = Icon(icon.data);
+    });
+
+    debugPrint('Picked Icon:  $icon');
+  }
 
   @override
   void initState() {
@@ -49,14 +83,15 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
   }
 
   void _activateListeners() {
+    print(hasTypes);
     _dailyStruggles = _database
         .child(
-            'dailyStruggles/${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}')
+            'dailyEntries/${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}')
         .onValue
         .listen((event) {
       final struggle = event.snapshot.value.toString();
 
-      if (struggle.isNotEmpty) entryList = getStrugglesList(struggle);
+      if (struggle.isNotEmpty) entryList = getEntriesList(struggle);
 
       for (var struggle in entryList) {
         print(
@@ -69,9 +104,13 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
     _dailyTypes = _database.child('dailyTypes/').onValue.listen((event) {
       final types = event.snapshot.value.toString();
 
-      if (types.isNotEmpty) {
+      if (types.isNotEmpty && types != "null") {
         setState(() {
           hasTypes = true;
+        });
+      } else {
+        setState(() {
+          hasTypes = false;
         });
       }
     });
@@ -87,7 +126,7 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     final databaseToday = _database.child(
-        'dailyStruggles/${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}');
+        'dailyEntries/${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}');
 
     return BlocProvider(
       create: (context) =>
@@ -321,10 +360,10 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
                       height: 16,
                     ),
                     Container(
-                      padding: EdgeInsets.all(16),
-                      child: Column(
+                      padding: const EdgeInsets.all(16),
+                      child: const Column(
                         children: [
-                          const Center(
+                          Center(
                             child: Text(
                               'To add an entry, all you have to do is create a type and then you can create it!',
                               style: TextStyle(
@@ -333,7 +372,7 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
                               ),
                             ),
                           ),
-                          const SizedBox(
+                          SizedBox(
                             height: 16,
                           ),
                         ],
@@ -348,7 +387,7 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
 
   _showEntryDialog(DailyEntry defaultDailyEntry) {
     print('Build Dialog');
-    final addDailyEntry = _database.child('dailyStruggles/');
+    final addDailyEntry = _database.child('dailyEntries/');
 
     return showDialog(
       context: context,
@@ -389,9 +428,10 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
                   "timeStamp": DateTime.now().toString()
                 });
               },
-              child: Text('Confirm')),
+              child: const Text('Confirm')),
           TextButton(
-              onPressed: () => Navigator.pop(context), child: Text('Close'))
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'))
         ],
       ),
     );
@@ -399,12 +439,15 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
 
   _showTypeDialog(DailyType defaultDailyType) {
     print('Build Dialog');
+    _icon = null;
     final addDailyType = _database.child('dailyType/');
+    TextEditingController typeName = TextEditingController();
 
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
         actionsAlignment: MainAxisAlignment.center,
+        backgroundColor: Colors.black,
         title: const Center(
             child: Text(
           "Create a Type",
@@ -417,48 +460,58 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Type Name',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
             const SizedBox(
               height: 16,
             ),
-            TextFormField(),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Icon',
-                style: TextStyle(color: Colors.white),
-              ),
+            TextFormField(
+              controller: typeName,
+              style: const TextStyle(color: Colors.white),
             ),
             const SizedBox(
               height: 16,
             ),
-            DropdownButton(
-              items: [],
-              onChanged: (value) {},
-            ),
+            TextButton(
+                onPressed: _pickIcon,
+                child: const Text('Select the icon you want')),
+            _icon != null
+                ? AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(20))),
+                      child: _icon,
+                    ),
+                  )
+                : const SizedBox(),
           ],
         ),
         actions: [
           TextButton(
               onPressed: () async {
+                print('stuff: $_icon');
                 final newRefAddType = addDailyType.push();
-
-                await newRefAddType.set({
-                  "name": '',
-                  "icon": '',
-                });
+                print(_icon);
+                // await newRefAddType.set({
+                //   "name": typeName.text,
+                //   "icon": _icon.toString(),
+                //   "id": newRefAddType.key,
+                // });
               },
-              child: Text('Confirm')),
+              child: const Text('Confirm')),
           TextButton(
-              onPressed: () => Navigator.pop(context), child: Text('Close'))
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'))
         ],
       ),
     );
   }
 
-  List<DailyEntry> getStrugglesList(String struggles) {
+  List<DailyEntry> getEntriesList(String struggles) {
     final List<String> struggleStringList = [];
     final List<DailyEntry> strugglesList = [];
 
