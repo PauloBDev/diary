@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:diary/models/task_model.dart';
 import 'package:diary/repositories/repositories.dart';
+import 'package:diary/repositories/simpleMethods.dart';
 import 'package:diary/task_bloc/task_bloc.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +40,7 @@ class _DailyTaskManagementState extends State<DailyTaskManagement> {
     _dailyTasks = _database.child('dailyTasks/').onValue.listen((event) {
       final tasks = event.snapshot.value.toString();
 
-      if (tasks.isNotEmpty) taskList = getList(tasks);
+      if (tasks.isNotEmpty) taskList = GetMethods().getDailyTasks(tasks);
 
       for (var task in taskList) {
         print(
@@ -205,54 +206,7 @@ class _DailyTaskManagementState extends State<DailyTaskManagement> {
     );
   }
 
-  List<DailyTask> getList(String tasks) {
-    final List<String> taskStringList = [];
-    final List<DailyTask> taskList = [];
-
-    final jsonString = tasks
-        .replaceAll(RegExp(r'\+'), '') // To remove all white spaces
-        .replaceAll(
-            RegExp(r':'), '":"') // To add double-quotes on both sides of colon
-        .replaceAll(
-            RegExp(r','), '","') // To add double-quotes on both sides of comma
-        .replaceAll(RegExp(r'{'),
-            '{"') // To add double-quotes after every open curly bracket
-        .replaceAll(RegExp(r'}'), '"}');
-
-    print('Initial String: $jsonString');
-
-    final jsonSplitAllDynamicOut = jsonString.split('":" {');
-
-    for (var i = 1; i < jsonSplitAllDynamicOut.length; i++) {
-      final test = jsonSplitAllDynamicOut[i].split('}"," ');
-
-      if (test.runtimeType != String) {
-        if (test[0].contains('"}"}')) {
-          taskStringList.add('{${test[0].replaceAll('"}"}', '"}')}');
-        } else {
-          taskStringList.add('{${test[0]}}');
-        }
-      }
-    }
-
-    print('String List: $taskStringList');
-
-    for (var task in taskStringList) {
-      print('went in the fromJason: $task');
-      final model = DailyTask.fromJson(
-          jsonDecode(task.replaceAll('":" ', '":"').replaceAll('"," ', '","')));
-      print('Model: $model');
-      taskList.add(model);
-    }
-
-    taskList.sort((a, b) {
-      return a.timeStamp!.compareTo(b.timeStamp!);
-    });
-
-    return taskList;
-  }
-
-  Future<void> _addTaskDialog(BuildContext context) {
+  _addTaskDialog(BuildContext context) {
     final taskController = TextEditingController();
     final addTask = _database.child('dailyTasks/');
 
@@ -302,8 +256,9 @@ class _DailyTaskManagementState extends State<DailyTaskManagement> {
                             await newRefAddTask.set({
                               'id': newRefAddTask.key,
                               'taskName': taskController.text,
-                              'timeStamp':
-                                  DateTime.now().millisecondsSinceEpoch,
+                              'timeStamp': DateTime.now()
+                                  .millisecondsSinceEpoch
+                                  .toString(),
                               'completed': false,
                             });
 

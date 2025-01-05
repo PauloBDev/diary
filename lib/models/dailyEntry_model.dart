@@ -1,7 +1,7 @@
-enum Type { stomach, headache, eyes, mood, stress }
+import 'package:diary/models/dailyType_model.dart';
 
 class DailyEntry {
-  late Type type;
+  Map<String, dynamic>? type;
   String? scale;
   String? timeStamp;
   String? comment;
@@ -15,8 +15,13 @@ class DailyEntry {
     required this.id,
   });
 
-  DailyEntry.fromJson(Map<String, dynamic> json) {
-    type = json['type'];
+  DailyEntry.fromJson(Map<String, dynamic> json, Map<String, dynamic> typeMap) {
+    type = {
+      "icon": typeMap['icon'],
+      "id": typeMap['id'],
+      "name": typeMap['name'],
+      "selected": typeMap['selected']
+    };
     scale = json['scale'];
     timeStamp = json['timeStamp'];
     comment = json['comment'];

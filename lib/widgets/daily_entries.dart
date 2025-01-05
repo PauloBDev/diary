@@ -5,6 +5,7 @@ import 'package:diary/models/dailyEntry_model.dart';
 import 'package:diary/models/task_model.dart';
 import 'package:diary/pages/dailyStrugglesEntries.dart';
 import 'package:diary/repositories/repositories.dart';
+import 'package:diary/repositories/simpleMethods.dart';
 import 'package:diary/task_bloc/task_bloc.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +26,7 @@ class _DailyStrugglesListState extends State<DailyStrugglesList> {
   final _database = FirebaseDatabase.instance.ref();
   late StreamSubscription _dailyEntries;
 
-  List<DailyEntry> taskList = [];
+  List<DailyEntry> entriesList = [];
 
   @override
   void initState() {
@@ -41,23 +42,23 @@ class _DailyStrugglesListState extends State<DailyStrugglesList> {
 
   void _activateListeners() {
     _dailyEntries = _database
-        .child(
-            'dailyEntries/${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}')
+        .child('dailyEntries/')
+        // ${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}
+
         .onValue
         .listen((event) {
-      final tasks = event.snapshot.value.toString();
+      final entries = event.snapshot.value.toString();
 
-      if (tasks.isNotEmpty) taskList = getList(tasks);
-
-      setState(() {});
+      print("here!!: $entries");
+      if (entries.isNotEmpty) {
+        entriesList = GetMethods().getEntriesList(entries);
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    final _databaseToday = _database.child(
-        'dailyEntries/${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}');
     print('Rebuild entryList.dart');
 
     return BlocProvider(
@@ -68,7 +69,7 @@ class _DailyStrugglesListState extends State<DailyStrugglesList> {
         children: [
           ListView.builder(
             shrinkWrap: true,
-            itemCount: taskList.length,
+            itemCount: entriesList.length,
             itemBuilder: ((
               context,
               index,
@@ -83,7 +84,8 @@ class _DailyStrugglesListState extends State<DailyStrugglesList> {
                       SizedBox(
                         width: screenWidth * 0.65,
                         child: Text(
-                          taskList[index].type.name,
+                          entriesList[index].type?['name'] ??
+                              "Failed to get type",
                           style: const TextStyle(
                             fontSize: 32,
                             color: Colors.black,
@@ -135,49 +137,18 @@ class _DailyStrugglesListState extends State<DailyStrugglesList> {
               ),
             ),
           ),
+          // SizedBox(
+          //   height: 300,
+          //   width: double.infinity,
+          //   child: ListView.builder(itemBuilder: (context, index) {
+          //     return Text(
+          //       entriesList[index].type?.name ?? "stuff",
+          //       style: TextStyle(color: Colors.white),
+          //     );
+          //   }),
+          // )
         ],
       ),
     );
-  }
-
-  List<DailyEntry> getList(String tasks) {
-    final List<String> taskStringList = [];
-    final List<DailyEntry> taskList = [];
-
-    final jsonString = tasks
-        .replaceAll(RegExp(r'\+'), '') // To remove all white spaces
-        .replaceAll(
-            RegExp(r':'), '":"') // To add double-quotes on both sides of colon
-        .replaceAll(
-            RegExp(r','), '","') // To add double-quotes on both sides of comma
-        .replaceAll(RegExp(r'{'),
-            '{"') // To add double-quotes after every open curly bracket
-        .replaceAll(RegExp(r'}'), '"}');
-
-    final jsonSplitAllDynamicOut = jsonString.split('":" {');
-
-    for (var i = 1; i < jsonSplitAllDynamicOut.length; i++) {
-      final test = jsonSplitAllDynamicOut[i].split('}"," ');
-
-      if (test.runtimeType != String) {
-        if (test[0].contains('"}"}')) {
-          taskStringList.add('{${test[0].replaceAll('"}"}', '"}')}');
-        } else {
-          taskStringList.add('{${test[0]}}');
-        }
-      }
-    }
-
-    for (var task in taskStringList) {
-      final model = DailyEntry.fromJson(
-          jsonDecode(task.replaceAll('":" ', '":"').replaceAll('"," ', '","')));
-      taskList.add(model);
-    }
-
-    taskList.sort((a, b) {
-      return a.timeStamp!.compareTo(b.timeStamp!);
-    });
-
-    return taskList;
   }
 }
