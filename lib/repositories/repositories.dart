@@ -23,19 +23,9 @@ class TaskRepository {
       return taskList;
     });
 
-    print('List: ${results.map((e) => '$e').toList()}');
-    // _database.onValue.listen((DatabaseEvent event) {
-    //   final data = event.snapshot.value;
-    //   print('Data: ${data}');
-    // });
-
     final Response response = await get(Uri.parse(endpoint));
 
-    print(response);
-
     if (response.statusCode == 200) {
-      print('200');
-
       final List result = jsonDecode(response.body)['todos'];
 
       return result.map((e) => DailyTask.fromJson(e)).toList();
@@ -50,10 +40,7 @@ class TaskRepository {
   }
 
   List<DailyTask> addTask(DailyTask task, List<DailyTask> tasks) {
-    print('Adding task $task');
     final addTask = database.push();
-
-    print(addTask);
 
     return tasks;
   }

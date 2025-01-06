@@ -19,8 +19,6 @@ class GetMethods {
             '{"') // To add double-quotes after every open curly bracket
         .replaceAll(RegExp(r'}'), '"}');
 
-    print('Initial String: $jsonString');
-
     final jsonSplitAllDynamicOut = jsonString.split('":" {');
 
     for (var i = 1; i < jsonSplitAllDynamicOut.length; i++) {
@@ -35,13 +33,9 @@ class GetMethods {
       }
     }
 
-    print('String List: $taskStringList');
-
     for (var task in taskStringList) {
-      print('went in the fromJason: $task');
       final model = DailyTask.fromJson(
           jsonDecode(task.replaceAll('":" ', '":"').replaceAll('"," ', '","')));
-      print('Model: ${model.taskName}');
       taskList.add(model);
     }
 
@@ -97,7 +91,7 @@ class GetMethods {
       strugglesList.add(model);
     }
     strugglesList.sort((a, b) {
-      return a.scale!.compareTo(b.scale!);
+      return a.type!['name']!.compareTo(b.type!['name']!);
     });
 
     return strugglesList;

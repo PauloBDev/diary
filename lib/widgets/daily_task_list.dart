@@ -2,8 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:diary/models/task_model.dart';
-import 'package:diary/pages/dailyTasksManagement.dart';
+import 'package:diary/pages/dailyTasks.dart';
 import 'package:diary/repositories/repositories.dart';
+import 'package:diary/repositories/simpleMethods.dart';
 import 'package:diary/task_bloc/task_bloc.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -43,12 +44,7 @@ class _DailyTaskListState extends State<DailyTaskList> {
     _dailyTasks = _database.child('dailyTasks/').onValue.listen((event) {
       final tasks = event.snapshot.value.toString();
 
-      if (tasks.isNotEmpty) taskList = getList(tasks);
-
-      for (var task in taskList) {
-        print(
-            '${task.id} - ${task.taskName} - ${task.completed} - ${task.timeStamp}');
-      }
+      if (tasks.isNotEmpty) taskList = GetMethods().getDailyTasks(tasks);
 
       setState(() {});
     });
@@ -185,8 +181,6 @@ class _DailyTaskListState extends State<DailyTaskList> {
             '{"') // To add double-quotes after every open curly bracket
         .replaceAll(RegExp(r'}'), '"}');
 
-    print('Initial String: $jsonString');
-
     final jsonSplitAllDynamicOut = jsonString.split('":" {');
 
     for (var i = 1; i < jsonSplitAllDynamicOut.length; i++) {
@@ -201,13 +195,9 @@ class _DailyTaskListState extends State<DailyTaskList> {
       }
     }
 
-    print('String List: $taskStringList');
-
     for (var task in taskStringList) {
-      print('went in the fromJason: $task');
       final model = DailyTask.fromJson(
           jsonDecode(task.replaceAll('":" ', '":"').replaceAll('"," ', '","')));
-      print('Model: $model');
       taskList.add(model);
     }
 

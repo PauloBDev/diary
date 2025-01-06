@@ -7,6 +7,8 @@ import 'package:diary/repositories/repositories.dart';
 import 'package:diary/repositories/simpleMethods.dart';
 import 'package:diary/task_bloc/task_bloc.dart';
 import 'package:diary/widgets/entryDialog.dart';
+import 'package:diary/widgets/entryListNotPermanent.dart';
+import 'package:diary/widgets/entryListPermanent.dart';
 import 'package:diary/widgets/noTypeEntryPage.dart';
 import 'package:diary/widgets/scaleBarEntries.dart';
 import 'package:diary/widgets/typeDialog.dart';
@@ -27,15 +29,23 @@ class DailyStrugglesEntries extends StatefulWidget {
 class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
   final _database = FirebaseDatabase.instance.ref();
 
-  late StreamSubscription _dailyStruggles;
+  late StreamSubscription _dailyEntriesPermanent;
+  late StreamSubscription _dailyEntries;
 
   late StreamSubscription _dailyTypes;
   final ValueNotifier<bool?> hasTypes = ValueNotifier<bool?>(null);
 
+  List<DailyEntry> entryListPermanent = [];
   List<DailyEntry> entryList = [];
 
   DailyEntry defaultDailyEntry = DailyEntry(
-      type: null, scale: '', timeStamp: DateTime.now().toString(), id: null);
+    type: null,
+    scale: '',
+    timeStamp: DateTime.now().toString(),
+    id: null,
+    permanent: "false",
+    showOnMain: "false",
+  );
 
   DailyType defaultDailyType =
       DailyType(name: '', icon: null, id: null, selected: "false");
@@ -44,35 +54,40 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
 
   @override
   void initState() {
-    super.initState();
     _activateListeners();
+    super.initState();
   }
 
   @override
   void deactivate() {
-    _dailyStruggles.cancel();
+    _dailyEntriesPermanent.cancel();
+    _dailyEntries.cancel();
     _dailyTypes.cancel();
     super.deactivate();
   }
 
   void _activateListeners() {
-    _dailyStruggles = _database.child('dailyEntries/').onValue.listen((event) {
+    _dailyEntriesPermanent =
+        _database.child('dailyEntries/permanent').onValue.listen((event) {
+      final struggle = event.snapshot.value.toString();
+
+      if (struggle.isNotEmpty) {
+        entryListPermanent = GetMethods().getEntriesList(struggle);
+      }
+    });
+
+    _dailyEntries =
+        _database.child('dailyEntries/notPermanent').onValue.listen((event) {
       final struggle = event.snapshot.value.toString();
 
       if (struggle.isNotEmpty) {
         entryList = GetMethods().getEntriesList(struggle);
-      }
-      print('List: ${entryList[0]}');
-      for (var struggle in entryList) {
-        debugPrint(
-            '${struggle.scale} - ${struggle.type?['name']} - ${struggle.timeStamp}');
       }
     });
 
     _dailyTypes = _database.child('dailyTypes/').onValue.listen((event) {
       final types = event.snapshot.value.toString();
 
-      print("types: $types");
       if (types.isNotEmpty && types != "null") {
         hasTypes.value = true;
       } else {
@@ -83,8 +98,6 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-
     return BlocProvider(
       create: (context) =>
           TaskBloc(RepositoryProvider.of<TaskRepository>(context))
@@ -196,99 +209,9 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
                         const SizedBox(
                           height: 16,
                         ),
-                        ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: entryList.length,
-                          itemBuilder: ((
-                            context,
-                            index,
-                          ) {
-                            return Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Flexible(
-                                  child: Card(
-                                    color: Colors.transparent,
-                                    child: Container(
-                                      decoration: const BoxDecoration(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(20)),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          // Icon(entryList[index].type?['icon']),
-                                          Flexible(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              children: [
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          left: 10, top: 5),
-                                                  child: Text(
-                                                    entryList[index]
-                                                            .type?["name"] ??
-                                                        "Failed to get type",
-                                                    style: const TextStyle(
-                                                      fontSize: 24,
-                                                      color: Colors.white,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  height: 30,
-                                                  margin: const EdgeInsets.only(
-                                                      left: 10, bottom: 10),
-                                                  width: double.maxFinite,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            20),
-                                                  ),
-                                                  child: ScaleBarEntries(
-                                                    editingValues: false,
-                                                    scaleValue: int.parse(
-                                                        "${entryList[index].scale}"),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 50,
-                                  child: GestureDetector(
-                                    onTap: () => showDialog(
-                                      context: context,
-                                      builder: (context) => EntryDialog(
-                                        editEntry: true,
-                                        scaleEdit: int.parse(
-                                            "${entryList[index].scale}"),
-                                        selectedTypeEdit: entryList[index].type,
-                                        entryId: entryList[index].id,
-                                      ),
-                                    ),
-                                    child: const Icon(
-                                      Icons.edit,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                )
-                              ],
-                            );
-                          }),
-                        ),
+                        EntryListPermanent(
+                            entryListPermanent: entryListPermanent),
+                        EntryListNotPermanent(entryList: entryList),
                         const SizedBox(
                           height: 10,
                         ),

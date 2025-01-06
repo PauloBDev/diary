@@ -118,9 +118,7 @@ class _TypeDialogState extends State<TypeDialog> {
       actions: [
         TextButton(
             onPressed: () async {
-              print('stuff: ${widget.icon}');
               final newRefAddType = addDailyType.push();
-              print(widget.icon.toString());
 
               await newRefAddType.set({
                 "name": typeName.text,

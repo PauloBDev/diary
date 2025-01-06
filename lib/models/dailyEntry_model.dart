@@ -6,6 +6,8 @@ class DailyEntry {
   String? timeStamp;
   String? comment;
   String? id;
+  String? permanent;
+  String? showOnMain;
 
   DailyEntry({
     required this.type,
@@ -13,6 +15,8 @@ class DailyEntry {
     required this.timeStamp,
     this.comment,
     required this.id,
+    required this.permanent,
+    required this.showOnMain,
   });
 
   DailyEntry.fromJson(Map<String, dynamic> json, Map<String, dynamic> typeMap) {
@@ -26,6 +30,8 @@ class DailyEntry {
     timeStamp = json['timeStamp'];
     comment = json['comment'];
     id = json['id'];
+    permanent = json['permanent'];
+    showOnMain = json['showOnMain'];
   }
 
   Map<String, dynamic> toJson() {
@@ -35,6 +41,8 @@ class DailyEntry {
     data['timeStamp'] = timeStamp;
     data['comment'] = comment;
     data['id'] = id;
+    data['permanent'] = permanent;
+    data['showOnMain'] = showOnMain;
     return data;
   }
 }

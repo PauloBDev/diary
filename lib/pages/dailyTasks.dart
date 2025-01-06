@@ -42,11 +42,6 @@ class _DailyTaskManagementState extends State<DailyTaskManagement> {
 
       if (tasks.isNotEmpty) taskList = GetMethods().getDailyTasks(tasks);
 
-      for (var task in taskList) {
-        print(
-            '${task.id} - ${task.taskName} - ${task.completed} - ${task.timeStamp}');
-      }
-
       setState(() {});
     });
   }
@@ -57,7 +52,6 @@ class _DailyTaskManagementState extends State<DailyTaskManagement> {
     final databaseToday = _database.child('dailyTasks/');
 
     print('Rebuild dailyTaskManagement.dart');
-    print(taskList);
 
     return BlocProvider(
       create: (context) =>

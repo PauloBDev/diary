@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:diary/models/dailyEntry_model.dart';
 import 'package:diary/models/task_model.dart';
-import 'package:diary/pages/dailyStrugglesEntries.dart';
+import 'package:diary/pages/dailyEntries.dart';
 import 'package:diary/repositories/repositories.dart';
 import 'package:diary/repositories/simpleMethods.dart';
 import 'package:diary/task_bloc/task_bloc.dart';
@@ -42,14 +42,13 @@ class _DailyStrugglesListState extends State<DailyStrugglesList> {
 
   void _activateListeners() {
     _dailyEntries = _database
-        .child('dailyEntries/')
+        .child('dailyEntries/permanent')
         // ${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}
 
         .onValue
         .listen((event) {
       final entries = event.snapshot.value.toString();
 
-      print("here!!: $entries");
       if (entries.isNotEmpty) {
         entriesList = GetMethods().getEntriesList(entries);
       }

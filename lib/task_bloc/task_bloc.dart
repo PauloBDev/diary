@@ -37,8 +37,6 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   _removeTask(RemoveTask event, Emitter<TaskState> emit) {
     emit(TaskLoadingState());
     try {
-      print(event.task.toJson());
-
       final tasksRemoval =
           _taskRepository.removeTask(event.task.id, event.tasks);
       emit(TaskFetchedState(tasksRemoval));
@@ -50,8 +48,6 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   _addTask(AddTask event, Emitter<TaskState> emit) {
     emit(TaskLoadingState());
     try {
-      print(event.task.toJson());
-
       var taskAdded = _taskRepository.addTask(event.task, event.tasks);
 
       emit(TaskFetchedState(taskAdded));
@@ -63,8 +59,6 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   _editTask(EditTask event, Emitter<TaskState> emit) {
     emit(TaskLoadingState());
     try {
-      print(event.tasks[event.index].toJson());
-
       var taskEdited = _taskRepository.editTask(event.index, event.tasks);
 
       emit(TaskFetchedState(taskEdited));
