@@ -19,6 +19,7 @@ class EntryDialog extends StatefulWidget {
     this.selectedTypeEdit,
     this.entryId,
     this.permanentEdit,
+    required this.typeListNotifier,
   });
 
   final bool editEntry;
@@ -26,6 +27,7 @@ class EntryDialog extends StatefulWidget {
   final Map<String, dynamic>? selectedTypeEdit;
   final String? entryId;
   final String? permanentEdit;
+  final ValueNotifier<List<DailyType>> typeListNotifier;
 
   @override
   State<EntryDialog> createState() => _EntryDialogState();
@@ -43,13 +45,10 @@ class _EntryDialogState extends State<EntryDialog> {
 
   final ValueNotifier<bool> permanentIconShake = ValueNotifier<bool>(false);
 
-  final ValueNotifier<List<DailyType>> typeListNotifier =
-      ValueNotifier<List<DailyType>>([]);
-
   @override
   void initState() {
-    _activateListeners();
     super.initState();
+    _activateListeners();
   }
 
   @override
@@ -61,6 +60,7 @@ class _EntryDialogState extends State<EntryDialog> {
   }
 
   void _activateListeners() {
+    print("Entry Dialog listeners");
     List<DailyType> newListInnit = [];
 
     selectedScale.value = widget.scaleEdit ?? 0;
@@ -91,10 +91,10 @@ class _EntryDialogState extends State<EntryDialog> {
       final types = event.snapshot.value.toString();
 
       if (types.isNotEmpty && types != "null") {
-        typeListNotifier.value = GetMethods().getTypesList(types);
+        widget.typeListNotifier.value = GetMethods().getTypesList(types);
       }
 
-      newListInnit = typeListNotifier.value.toList();
+      newListInnit = widget.typeListNotifier.value.toList();
 
       if (widget.selectedTypeEdit != null) {
         newListInnit[newListInnit.indexWhere(
@@ -140,8 +140,10 @@ class _EntryDialogState extends State<EntryDialog> {
 
       newListInnit.removeWhere((type) => tempList.contains(type));
 
-      typeListNotifier.value = newListInnit;
+      widget.typeListNotifier.value = newListInnit;
     });
+
+    setState(() {});
   }
 
   DailyType? selectedType;
@@ -150,8 +152,6 @@ class _EntryDialogState extends State<EntryDialog> {
   @override
   Widget build(BuildContext context) {
     print('Build Dialog');
-    final dailyEntryPermanent = _database.child('dailyEntries/permanent');
-    final dailyEntry = _database.child('dailyEntries/notPermanent');
 
     return AlertDialog(
       backgroundColor: Colors.black,
@@ -192,17 +192,17 @@ class _EntryDialogState extends State<EntryDialog> {
                 margin: const EdgeInsets.only(right: 8),
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: typeListNotifier.value.length,
+                  itemCount: widget.typeListNotifier.value.length,
                   itemBuilder: (context, index) {
                     return GestureDetector(
                       onLongPress: () => showDialog(
                         context: context,
                         builder: (context) => RemoveTypeDialog(
-                          type: typeListNotifier.value[index],
+                          type: widget.typeListNotifier.value[index],
                         ),
                       ),
                       onTap: () {
-                        final newList = typeListNotifier.value.toList();
+                        final newList = widget.typeListNotifier.value.toList();
                         for (var type in newList) {
                           if (type.selected == "true" &&
                               newList[index].id != type.id) {
@@ -213,14 +213,15 @@ class _EntryDialogState extends State<EntryDialog> {
 
                         selectedType = newList[index];
 
-                        typeListNotifier.value = newList;
+                        widget.typeListNotifier.value = newList;
                       },
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius:
                               const BorderRadius.all(Radius.circular(10)),
                           color:
-                              typeListNotifier.value[index].selected == "true"
+                              widget.typeListNotifier.value[index].selected ==
+                                      "true"
                                   ? Colors.green
                                   : Colors.white,
                         ),
@@ -228,7 +229,7 @@ class _EntryDialogState extends State<EntryDialog> {
                         padding: const EdgeInsets.only(left: 8, right: 8),
                         child: Center(
                           child: Text(
-                            '${typeListNotifier.value[index].name}',
+                            '${widget.typeListNotifier.value[index].name}',
                             style: const TextStyle(
                               color: Colors.black,
                             ),
@@ -370,143 +371,11 @@ class _EntryDialogState extends State<EntryDialog> {
             ],
           );
         },
-        valueListenable: typeListNotifier,
+        valueListenable: widget.typeListNotifier,
       ),
       actions: [
         TextButton(
             onPressed: () async {
-              final newRefAddDailyEntryPermanent = dailyEntryPermanent.push();
-              final newRefAddDailyEntry = dailyEntry.push();
-
-              if (widget.editEntry == true) {
-                if (tempPermanentIconShake == true &&
-                    permanentIconShake.value == false) {
-                  dailyEntryPermanent.child('${widget.entryId}/').remove();
-
-                  selectedType != null
-                      ? await newRefAddDailyEntry.set(
-                          {
-                            "type":
-                                'a{icon: ${selectedType!.icon}, id: ${selectedType!.id}, name: ${selectedType!.name}, selected: ${selectedType!.selected}}',
-                            "scale": selectedScale.value.toString(),
-                            "timeStamp": DateTime.now()
-                                .millisecondsSinceEpoch
-                                .toString(),
-                            "id": newRefAddDailyEntry.key,
-                            "permanent": permanentIconShake.value.toString(),
-                            "showOnMain": "true",
-                          },
-                        )
-                      : await newRefAddDailyEntry.set(
-                          {
-                            "type":
-                                'a{icon: ${widget.selectedTypeEdit!['icon']}, id: ${widget.selectedTypeEdit!['id']}, name: ${widget.selectedTypeEdit!['name']}, selected: ${widget.selectedTypeEdit!['selected']}}',
-                            "scale": selectedScale.value.toString(),
-                            "timeStamp": DateTime.now()
-                                .millisecondsSinceEpoch
-                                .toString(),
-                            "id": newRefAddDailyEntry.key,
-                            "permanent": permanentIconShake.value.toString(),
-                            "showOnMain": "true",
-                          },
-                        );
-                } else if (tempPermanentIconShake == false &&
-                    permanentIconShake.value == true) {
-                  dailyEntry.child('${widget.entryId}/').remove();
-
-                  selectedType != null
-                      ? await newRefAddDailyEntryPermanent.set(
-                          {
-                            "type":
-                                'a{icon: ${selectedType!.icon}, id: ${selectedType!.id}, name: ${selectedType!.name}, selected: ${selectedType!.selected}}',
-                            "scale": selectedScale.value.toString(),
-                            "timeStamp": DateTime.now()
-                                .millisecondsSinceEpoch
-                                .toString(),
-                            "id": newRefAddDailyEntryPermanent.key,
-                            "permanent": permanentIconShake.value.toString(),
-                            "showOnMain": "true",
-                          },
-                        )
-                      : await newRefAddDailyEntryPermanent.set(
-                          {
-                            "type":
-                                'a{icon: ${widget.selectedTypeEdit!['icon']}, id: ${widget.selectedTypeEdit!['id']}, name: ${widget.selectedTypeEdit!['name']}, selected: ${widget.selectedTypeEdit!['selected']}}',
-                            "scale": selectedScale.value.toString(),
-                            "timeStamp": DateTime.now()
-                                .millisecondsSinceEpoch
-                                .toString(),
-                            "id": newRefAddDailyEntryPermanent.key,
-                            "permanent": permanentIconShake.value.toString(),
-                            "showOnMain": "true",
-                          },
-                        );
-                } else {
-                  if (tempPermanentIconShake == false &&
-                      permanentIconShake.value == false) {
-                    selectedType == null
-                        ? await dailyEntry.child('${widget.entryId}/').update({
-                            "scale": selectedScale.value.toString(),
-                            "permanent": permanentIconShake.value.toString(),
-                          })
-                        : await dailyEntry.child('${widget.entryId}/').update(
-                            {
-                              "type":
-                                  'a{icon: ${selectedType!.icon ?? widget.selectedTypeEdit?['icon']}, id: ${selectedType!.id ?? widget.selectedTypeEdit?['id']}, name: ${selectedType!.name ?? widget.selectedTypeEdit?['name']}, selected: ${selectedType!.selected ?? widget.selectedTypeEdit?['selected']}}',
-                              "scale": selectedScale.value.toString(),
-                              "permanent": permanentIconShake.value.toString(),
-                            },
-                          );
-                  } else {
-                    selectedType == null
-                        ? await dailyEntryPermanent
-                            .child('${widget.entryId}/')
-                            .update({
-                            "scale": selectedScale.value.toString(),
-                            "permanent": permanentIconShake.value.toString(),
-                          })
-                        : await dailyEntryPermanent
-                            .child('${widget.entryId}/')
-                            .update(
-                            {
-                              "type":
-                                  'a{icon: ${selectedType!.icon ?? widget.selectedTypeEdit?['icon']}, id: ${selectedType!.id ?? widget.selectedTypeEdit?['id']}, name: ${selectedType!.name ?? widget.selectedTypeEdit?['name']}, selected: ${selectedType!.selected ?? widget.selectedTypeEdit?['selected']}}',
-                              "scale": selectedScale.value.toString(),
-                              "permanent": permanentIconShake.value.toString(),
-                            },
-                          );
-                  }
-                }
-              } else {
-                if (permanentIconShake.value == true) {
-                  await newRefAddDailyEntryPermanent.set(
-                    {
-                      "type":
-                          'a{icon: ${selectedType!.icon}, id: ${selectedType!.id}, name: ${selectedType!.name}, selected: ${selectedType!.selected}}',
-                      "scale": selectedScale.value.toString(),
-                      "timeStamp":
-                          DateTime.now().millisecondsSinceEpoch.toString(),
-                      "id": newRefAddDailyEntryPermanent.key,
-                      "permanent": permanentIconShake.value.toString(),
-                      "showOnMain": "true",
-                    },
-                  );
-                } else {
-                  await newRefAddDailyEntry.set(
-                    {
-                      "type":
-                          'a{icon: ${selectedType!.icon}, id: ${selectedType!.id}, name: ${selectedType!.name}, selected: ${selectedType!.selected}}',
-                      "scale": selectedScale.value.toString(),
-                      "timeStamp":
-                          DateTime.now().millisecondsSinceEpoch.toString(),
-                      "id": newRefAddDailyEntry.key,
-                      "permanent": permanentIconShake.value.toString(),
-                      "showOnMain": "true",
-                    },
-                  );
-                }
-              }
-
               Navigator.pop(context);
             },
             child: const Text('Confirm')),
@@ -514,5 +383,127 @@ class _EntryDialogState extends State<EntryDialog> {
             onPressed: () => Navigator.pop(context), child: const Text('Close'))
       ],
     );
+  }
+
+  void handleEntriesRequest() async {
+    final dailyEntryPermanent = _database.child('dailyEntries/permanent');
+    final dailyEntry = _database.child('dailyEntries/notPermanent');
+
+    final newRefAddDailyEntryPermanent = dailyEntryPermanent.push();
+    final newRefAddDailyEntry = dailyEntry.push();
+
+    if (widget.editEntry == true) {
+      if (tempPermanentIconShake == true && permanentIconShake.value == false) {
+        dailyEntryPermanent.child('${widget.entryId}/').remove();
+
+        selectedType != null
+            ? await newRefAddDailyEntry.set(
+                {
+                  "type":
+                      'a{icon: ${selectedType!.icon}, id: ${selectedType!.id}, name: ${selectedType!.name}, selected: ${selectedType!.selected}}',
+                  "scale": selectedScale.value.toString(),
+                  "timeStamp": DateTime.now().millisecondsSinceEpoch.toString(),
+                  "id": newRefAddDailyEntry.key,
+                  "permanent": permanentIconShake.value.toString(),
+                  "showOnMain": "true",
+                },
+              )
+            : await newRefAddDailyEntry.set(
+                {
+                  "type":
+                      'a{icon: ${widget.selectedTypeEdit!['icon']}, id: ${widget.selectedTypeEdit!['id']}, name: ${widget.selectedTypeEdit!['name']}, selected: ${widget.selectedTypeEdit!['selected']}}',
+                  "scale": selectedScale.value.toString(),
+                  "timeStamp": DateTime.now().millisecondsSinceEpoch.toString(),
+                  "id": newRefAddDailyEntry.key,
+                  "permanent": permanentIconShake.value.toString(),
+                  "showOnMain": "true",
+                },
+              );
+      } else if (tempPermanentIconShake == false &&
+          permanentIconShake.value == true) {
+        dailyEntry.child('${widget.entryId}/').remove();
+
+        selectedType != null
+            ? await newRefAddDailyEntryPermanent.set(
+                {
+                  "type":
+                      'a{icon: ${selectedType!.icon}, id: ${selectedType!.id}, name: ${selectedType!.name}, selected: ${selectedType!.selected}}',
+                  "scale": selectedScale.value.toString(),
+                  "timeStamp": DateTime.now().millisecondsSinceEpoch.toString(),
+                  "id": newRefAddDailyEntryPermanent.key,
+                  "permanent": permanentIconShake.value.toString(),
+                  "showOnMain": "true",
+                },
+              )
+            : await newRefAddDailyEntryPermanent.set(
+                {
+                  "type":
+                      'a{icon: ${widget.selectedTypeEdit!['icon']}, id: ${widget.selectedTypeEdit!['id']}, name: ${widget.selectedTypeEdit!['name']}, selected: ${widget.selectedTypeEdit!['selected']}}',
+                  "scale": selectedScale.value.toString(),
+                  "timeStamp": DateTime.now().millisecondsSinceEpoch.toString(),
+                  "id": newRefAddDailyEntryPermanent.key,
+                  "permanent": permanentIconShake.value.toString(),
+                  "showOnMain": "true",
+                },
+              );
+      } else {
+        if (tempPermanentIconShake == false &&
+            permanentIconShake.value == false) {
+          selectedType == null
+              ? await dailyEntry.child('${widget.entryId}/').update({
+                  "scale": selectedScale.value.toString(),
+                  "permanent": permanentIconShake.value.toString(),
+                })
+              : await dailyEntry.child('${widget.entryId}/').update(
+                  {
+                    "type":
+                        'a{icon: ${selectedType!.icon ?? widget.selectedTypeEdit?['icon']}, id: ${selectedType!.id ?? widget.selectedTypeEdit?['id']}, name: ${selectedType!.name ?? widget.selectedTypeEdit?['name']}, selected: ${selectedType!.selected ?? widget.selectedTypeEdit?['selected']}}',
+                    "scale": selectedScale.value.toString(),
+                    "permanent": permanentIconShake.value.toString(),
+                  },
+                );
+        } else {
+          selectedType == null
+              ? await dailyEntryPermanent.child('${widget.entryId}/').update({
+                  "scale": selectedScale.value.toString(),
+                  "permanent": permanentIconShake.value.toString(),
+                })
+              : await dailyEntryPermanent.child('${widget.entryId}/').update(
+                  {
+                    "type":
+                        'a{icon: ${selectedType!.icon ?? widget.selectedTypeEdit?['icon']}, id: ${selectedType!.id ?? widget.selectedTypeEdit?['id']}, name: ${selectedType!.name ?? widget.selectedTypeEdit?['name']}, selected: ${selectedType!.selected ?? widget.selectedTypeEdit?['selected']}}',
+                    "scale": selectedScale.value.toString(),
+                    "permanent": permanentIconShake.value.toString(),
+                  },
+                );
+        }
+      }
+    } else {
+      if (permanentIconShake.value == true) {
+        await newRefAddDailyEntryPermanent.set(
+          {
+            "type":
+                'a{icon: ${selectedType!.icon}, id: ${selectedType!.id}, name: ${selectedType!.name}, selected: ${selectedType!.selected}}',
+            "scale": selectedScale.value.toString(),
+            "timeStamp": DateTime.now().millisecondsSinceEpoch.toString(),
+            "id": newRefAddDailyEntryPermanent.key,
+            "permanent": permanentIconShake.value.toString(),
+            "showOnMain": "true",
+          },
+        );
+      } else {
+        await newRefAddDailyEntry.set(
+          {
+            "type":
+                'a{icon: ${selectedType!.icon}, id: ${selectedType!.id}, name: ${selectedType!.name}, selected: ${selectedType!.selected}}',
+            "scale": selectedScale.value.toString(),
+            "timeStamp": DateTime.now().millisecondsSinceEpoch.toString(),
+            "id": newRefAddDailyEntry.key,
+            "permanent": permanentIconShake.value.toString(),
+            "showOnMain": "true",
+          },
+        );
+      }
+    }
   }
 }

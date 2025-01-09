@@ -1,12 +1,18 @@
 import 'package:diary/models/dailyEntry_model.dart';
+import 'package:diary/models/dailyType_model.dart';
 import 'package:diary/widgets/entryDialog.dart';
 import 'package:diary/widgets/scaleBarEntries.dart';
 import 'package:flutter/material.dart';
 
 class EntryListPermanent extends StatefulWidget {
-  const EntryListPermanent({super.key, required this.entryListPermanent});
+  const EntryListPermanent({
+    super.key,
+    required this.entryListPermanent,
+    required this.typeListNotifier,
+  });
 
   final List<DailyEntry> entryListPermanent;
+  final ValueNotifier<List<DailyType>> typeListNotifier;
 
   @override
   State<EntryListPermanent> createState() => _EntryListPermanentState();
@@ -90,6 +96,7 @@ class _EntryListPermanentState extends State<EntryListPermanent> {
                       selectedTypeEdit: widget.entryListPermanent[index].type,
                       entryId: widget.entryListPermanent[index].id,
                       permanentEdit: widget.entryListPermanent[index].permanent,
+                      typeListNotifier: widget.typeListNotifier,
                     ),
                   );
                 },

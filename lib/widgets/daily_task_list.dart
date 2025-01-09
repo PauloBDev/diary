@@ -6,6 +6,7 @@ import 'package:diary/pages/dailyTasks.dart';
 import 'package:diary/repositories/repositories.dart';
 import 'package:diary/repositories/simpleMethods.dart';
 import 'package:diary/task_bloc/task_bloc.dart';
+import 'package:diary/widgets/dailyTaskDialog.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -128,83 +129,84 @@ class _DailyTaskListState extends State<DailyTaskList> {
           const SizedBox(
             height: 10,
           ),
-          GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                  builder: (context) => const DailyTaskManagement()),
-            ),
-            child: Container(
-              margin: const EdgeInsets.only(left: 20, right: 20),
-              width: double.infinity,
-              height: 50,
-              child: Align(
-                alignment: Alignment.center,
-                child: Container(
-                  height: double.infinity,
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white),
-                      borderRadius: BorderRadius.all(Radius.circular(20))),
-                  child: const Text(
-                    "Add a daily task!",
-                    style: TextStyle(color: Colors.white),
+          SizedBox(
+            width: double.infinity,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => const DailyTaskDialog(),
+                    );
+                  },
+                  child: SizedBox(
+                    height: 50,
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        height: double.infinity,
+                        padding: const EdgeInsets.all(15),
+                        decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white),
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(20))),
+                        child: const Text(
+                          "Add a daily task!",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      )
+                          .animate(
+                        delay: 0.milliseconds,
+                        onPlay: (controller) => controller.repeat(),
+                      )
+                          .shimmer(colors: [
+                        Colors.green,
+                        Colors.red,
+                        Colors.green,
+                      ], duration: 3000.milliseconds),
+                    ),
                   ),
-                )
-                    .animate(
-                  delay: 0.milliseconds,
-                  onPlay: (controller) => controller.repeat(),
-                )
-                    .shimmer(colors: [
-                  Colors.green,
-                  Colors.red,
-                  Colors.green,
-                ], duration: 3000.milliseconds),
-              ),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (context) => const DailyTaskManagement()),
+                  ),
+                  child: SizedBox(
+                    height: 50,
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        height: double.infinity,
+                        padding: const EdgeInsets.all(15),
+                        decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white),
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(20))),
+                        child: const Text(
+                          "Manage your tasks",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      )
+                          .animate(
+                        delay: 0.milliseconds,
+                        onPlay: (controller) => controller.repeat(),
+                      )
+                          .shimmer(colors: [
+                        Colors.green,
+                        Colors.red,
+                        Colors.green,
+                      ], duration: 3000.milliseconds),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
-  }
-
-  List<DailyTask> getList(String tasks) {
-    final List<String> taskStringList = [];
-    final List<DailyTask> taskList = [];
-
-    final jsonString = tasks
-        .replaceAll(RegExp(r'\+'), '') // To remove all white spaces
-        .replaceAll(
-            RegExp(r':'), '":"') // To add double-quotes on both sides of colon
-        .replaceAll(
-            RegExp(r','), '","') // To add double-quotes on both sides of comma
-        .replaceAll(RegExp(r'{'),
-            '{"') // To add double-quotes after every open curly bracket
-        .replaceAll(RegExp(r'}'), '"}');
-
-    final jsonSplitAllDynamicOut = jsonString.split('":" {');
-
-    for (var i = 1; i < jsonSplitAllDynamicOut.length; i++) {
-      final test = jsonSplitAllDynamicOut[i].split('}"," ');
-
-      if (test.runtimeType != String) {
-        if (test[0].contains('"}"}')) {
-          taskStringList.add('{${test[0].replaceAll('"}"}', '"}')}');
-        } else {
-          taskStringList.add('{${test[0]}}');
-        }
-      }
-    }
-
-    for (var task in taskStringList) {
-      final model = DailyTask.fromJson(
-          jsonDecode(task.replaceAll('":" ', '":"').replaceAll('"," ', '","')));
-      taskList.add(model);
-    }
-
-    taskList.sort((a, b) {
-      return a.timeStamp!.compareTo(b.timeStamp!);
-    });
-
-    return taskList;
   }
 }

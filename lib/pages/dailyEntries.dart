@@ -30,12 +30,18 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
   final _database = FirebaseDatabase.instance.ref();
 
   late StreamSubscription _dailyEntriesPermanent;
+
   late StreamSubscription _dailyEntries;
 
   late StreamSubscription _dailyTypes;
+
   final ValueNotifier<bool?> hasTypes = ValueNotifier<bool?>(null);
 
+  final ValueNotifier<List<DailyType>> typeListNotifier =
+      ValueNotifier<List<DailyType>>([]);
+
   List<DailyEntry> entryListPermanent = [];
+
   List<DailyEntry> entryList = [];
 
   DailyEntry defaultDailyEntry = DailyEntry(
@@ -54,8 +60,8 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
 
   @override
   void initState() {
-    _activateListeners();
     super.initState();
+    _activateListeners();
   }
 
   @override
@@ -67,6 +73,7 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
   }
 
   void _activateListeners() {
+    print("Daily Entries listeners");
     _dailyEntriesPermanent =
         _database.child('dailyEntries/permanent').onValue.listen((event) {
       final struggle = event.snapshot.value.toString();
@@ -90,10 +97,14 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
 
       if (types.isNotEmpty && types != "null") {
         hasTypes.value = true;
+
+        typeListNotifier.value = GetMethods().getTypesList(types);
       } else {
         hasTypes.value = false;
       }
     });
+
+    setState(() {});
   }
 
   @override
@@ -146,8 +157,9 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
                                 onTap: () {
                                   showDialog(
                                     context: context,
-                                    builder: (context) => const EntryDialog(
+                                    builder: (context) => EntryDialog(
                                       editEntry: false,
+                                      typeListNotifier: typeListNotifier,
                                     ),
                                   );
                                 },
@@ -209,9 +221,26 @@ class _DailyStrugglesEntriesState extends State<DailyStrugglesEntries> {
                         const SizedBox(
                           height: 16,
                         ),
-                        EntryListPermanent(
-                            entryListPermanent: entryListPermanent),
-                        EntryListNotPermanent(entryList: entryList),
+                        ValueListenableBuilder(
+                          valueListenable: typeListNotifier,
+                          builder: (BuildContext context, List<DailyType> value,
+                              Widget? child) {
+                            return EntryListPermanent(
+                              entryListPermanent: entryListPermanent,
+                              typeListNotifier: typeListNotifier,
+                            );
+                          },
+                        ),
+                        ValueListenableBuilder(
+                          valueListenable: typeListNotifier,
+                          builder: (BuildContext context, List<DailyType> value,
+                              Widget? child) {
+                            return EntryListNotPermanent(
+                              entryList: entryList,
+                              typeListNotifier: typeListNotifier,
+                            );
+                          },
+                        ),
                         const SizedBox(
                           height: 10,
                         ),

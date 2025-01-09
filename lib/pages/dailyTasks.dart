@@ -5,6 +5,7 @@ import 'package:diary/models/task_model.dart';
 import 'package:diary/repositories/repositories.dart';
 import 'package:diary/repositories/simpleMethods.dart';
 import 'package:diary/task_bloc/task_bloc.dart';
+import 'package:diary/widgets/dailyTaskDialog.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,6 +38,7 @@ class _DailyTaskManagementState extends State<DailyTaskManagement> {
   }
 
   void _activateListeners() {
+    print("Daily Tasks listeners");
     _dailyTasks = _database.child('dailyTasks/').onValue.listen((event) {
       final tasks = event.snapshot.value.toString();
 
@@ -63,7 +65,7 @@ class _DailyTaskManagementState extends State<DailyTaskManagement> {
           elevation: 0.0,
           title: const Text(
             'Diary',
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white),
           ),
           centerTitle: true,
           leading: GestureDetector(
@@ -87,7 +89,12 @@ class _DailyTaskManagementState extends State<DailyTaskManagement> {
           child: Column(
             children: [
               GestureDetector(
-                onTap: () => _addTaskDialog(context),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => const DailyTaskDialog(),
+                  );
+                },
                 child: Container(
                   width: double.infinity,
                   height: 50,
@@ -197,102 +204,6 @@ class _DailyTaskManagementState extends State<DailyTaskManagement> {
           ),
         ),
       ),
-    );
-  }
-
-  _addTaskDialog(BuildContext context) {
-    final taskController = TextEditingController();
-    final addTask = _database.child('dailyTasks/');
-
-    return showGeneralDialog(
-      barrierLabel: "showGeneralDialog",
-      barrierDismissible: true,
-      barrierColor: Colors.black.withOpacity(0.5),
-      transitionDuration: const Duration(milliseconds: 300),
-      context: context,
-      pageBuilder: (context, anim1, anim2) {
-        return Align(
-          alignment: Alignment.bottomCenter,
-          child: IntrinsicHeight(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade400,
-                border:
-                    Border.all(width: 1, color: Colors.grey.withOpacity(0.4)),
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
-              ),
-              child: Material(
-                color: Colors.blue.shade400,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Center(
-                      child: DefaultTextStyle(
-                        style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 32,
-                            color: Colors.grey.shade300),
-                        child: const Text('Add a Task!'),
-                      ),
-                    ),
-                    TextField(
-                      onChanged: (value) {},
-                      controller: taskController,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TextButton(
-                          onPressed: () async {
-                            final newRefAddTask = addTask.push();
-
-                            await newRefAddTask.set({
-                              'id': newRefAddTask.key,
-                              'taskName': taskController.text,
-                              'timeStamp': DateTime.now()
-                                  .millisecondsSinceEpoch
-                                  .toString(),
-                              'completed': false,
-                            });
-
-                            Navigator.pop(context);
-                            // context
-                            //     .read<TaskBloc>()
-                            //     .add(AddTask(task as Task, taskList));
-                          },
-                          child: const Text('Confirm'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-      transitionBuilder: (context, anim1, anim2, child) {
-        return SlideTransition(
-          position: Tween(
-            begin: const Offset(
-              0,
-              1,
-            ),
-            end: const Offset(
-              0,
-              0,
-            ),
-          ).animate(
-            anim1,
-          ),
-          child: child,
-        );
-      },
     );
   }
 }
